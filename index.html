@@ -396,6 +396,7 @@
         const restartBtn = document.getElementById("restart-btn");
         const instructions = document.getElementById("instructions");
         const touchControls = document.getElementById("touch-controls");
+        const touchHint = document.getElementById("touch-hint");
 
         // --- Responsive Game Dimensions ---
         function getGameDimensions() {
@@ -434,7 +435,16 @@
 
         // --- Event Listeners ---
         playBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', () => location.reload());
+        restartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.reload();
+        });
+        restartBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.reload();
+        });
 
         // Keyboard controls
         const keys = {};
@@ -477,7 +487,11 @@
             
             // Show touch controls on mobile
             if (window.innerWidth <= 650) {
-                touchControls.style.display = 'flex';
+                touchControls.style.display = 'block';
+                // Hide hint after 3 seconds
+                setTimeout(() => {
+                    if (touchHint) touchHint.style.display = 'none';
+                }, 3000);
             }
             
             gameLoop = requestAnimationFrame(update);
