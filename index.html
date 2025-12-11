@@ -245,6 +245,8 @@
             border-radius: 10px;
             text-align: center;
             pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.35s ease;
         }
 
         /* Responsive Styles */
@@ -397,6 +399,7 @@
         const instructions = document.getElementById("instructions");
         const touchControls = document.getElementById("touch-controls");
         const touchHint = document.getElementById("touch-hint");
+        let touchHintTimer = null;
 
         // --- Responsive Game Dimensions ---
         function getGameDimensions() {
@@ -455,19 +458,36 @@
             keys[e.code] = false;
         });
 
+        // --- Touch hint helpers ---
+        function hideTouchHint() {
+            if (!touchHint || touchHint.style.display === 'none') return;
+            touchHint.style.opacity = '0';
+            setTimeout(() => {
+                if (touchHint) touchHint.style.display = 'none';
+            }, 400);
+        }
+
+        function showAndScheduleHintHide() {
+            if (!touchHint) return;
+            touchHint.style.display = 'block';
+            touchHint.style.opacity = '1';
+            if (touchHintTimer) clearTimeout(touchHintTimer);
+            touchHintTimer = setTimeout(hideTouchHint, 3200);
+        }
+
         // Touch controls - tap left/right side of screen
         const touchLeft = document.getElementById('touch-left');
         const touchRight = document.getElementById('touch-right');
 
-        touchLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
+        touchLeft.addEventListener('touchstart', (e) => { e.preventDefault(); hideTouchHint(); keys['ArrowLeft'] = true; });
         touchLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; });
-        touchLeft.addEventListener('mousedown', () => { keys['ArrowLeft'] = true; });
+        touchLeft.addEventListener('mousedown', () => { hideTouchHint(); keys['ArrowLeft'] = true; });
         touchLeft.addEventListener('mouseup', () => { keys['ArrowLeft'] = false; });
         touchLeft.addEventListener('mouseleave', () => { keys['ArrowLeft'] = false; });
 
-        touchRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
+        touchRight.addEventListener('touchstart', (e) => { e.preventDefault(); hideTouchHint(); keys['ArrowRight'] = true; });
         touchRight.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; });
-        touchRight.addEventListener('mousedown', () => { keys['ArrowRight'] = true; });
+        touchRight.addEventListener('mousedown', () => { hideTouchHint(); keys['ArrowRight'] = true; });
         touchRight.addEventListener('mouseup', () => { keys['ArrowRight'] = false; });
         touchRight.addEventListener('mouseleave', () => { keys['ArrowRight'] = false; });
 
@@ -488,10 +508,7 @@
             // Show touch controls on mobile
             if (window.innerWidth <= 650) {
                 touchControls.style.display = 'block';
-                // Hide hint after 3 seconds
-                setTimeout(() => {
-                    if (touchHint) touchHint.style.display = 'none';
-                }, 3000);
+                showAndScheduleHintHide();
             }
             
             gameLoop = requestAnimationFrame(update);
@@ -607,6 +624,10 @@
             finalHighScoreDisplay.innerText = highScore;
             gameOverScreen.style.display = 'block';
             instructions.style.display = 'none';
+            hideTouchHint();
+            touchControls.style.display = 'none';
+            keys['ArrowLeft'] = false;
+            keys['ArrowRight'] = false;
 
             // Hide all obstacles
             obstacles.forEach(obs => obs.element.style.display = 'none');
